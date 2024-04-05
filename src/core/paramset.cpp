@@ -30,9 +30,9 @@
 
  */
 
-
 // core/paramset.cpp*
 #include "paramset.h"
+
 #include "floatfile.h"
 #include "textures/constant.h"
 
@@ -441,10 +441,10 @@ std::string ParamSet::FindTexture(const std::string &name) const {
 }
 
 void ParamSet::ReportUnused() const {
-#define CHECK_UNUSED(v)                                                 \
-    for (size_t i = 0; i < (v).size(); ++i)                             \
-        if (!(v)[i]->lookedUp)                                          \
-            Warning("Parameter \"%s\" not used", (v)[i]->name.c_str())
+#define CHECK_UNUSED(v)                     \
+    for (size_t i = 0; i < (v).size(); ++i) \
+        if (!(v)[i]->lookedUp)              \
+    Warning("Parameter \"%s\" not used", (v)[i]->name.c_str())
     CHECK_UNUSED(ints);
     CHECK_UNUSED(bools);
     CHECK_UNUSED(floats);
@@ -716,6 +716,20 @@ void ParamSet::Print(int indent) const {
     printItems("rgb", indent, spectra);
 }
 
+std::map<std::string, std::string> ParamSet::GetAllStrings() const {
+    std::map<std::string, std::string> partStr2matStr;
+    for (const auto &item : strings) {
+        if (item) {  // 确保 shared_ptr 不为空
+            for (int i = 0; i < item->nValues; ++i) {
+                // mtlStrings.push_back(
+                //     item->values[i]);  // 提取字符串并添加到新向量中
+                partStr2matStr[item->name] = item->values[i];
+            }
+        }
+    }
+    return partStr2matStr;
+}
+
 // TextureParams Method Definitions
 std::shared_ptr<Texture<Spectrum>> TextureParams::GetSpectrumTexture(
     const std::string &n, const Spectrum &def) const {
@@ -746,14 +760,14 @@ std::shared_ptr<Texture<Spectrum>> TextureParams::GetSpectrumTextureOrNull(
             const Spectrum *s = materialParams.FindSpectrum(n, &count);
             if (s) {
                 if (count > 1)
-                    Warning("Ignoring excess values provided with parameter \"%s\"",
-                            n.c_str());
+                    Warning(
+                        "Ignoring excess values provided with parameter \"%s\"",
+                        n.c_str());
                 return std::make_shared<ConstantTexture<Spectrum>>(*s);
             }
         }
 
-        if (name.empty())
-            return nullptr;
+        if (name.empty()) return nullptr;
     }
 
     // We have a texture name, from either the shape or the material's
@@ -761,8 +775,9 @@ std::shared_ptr<Texture<Spectrum>> TextureParams::GetSpectrumTextureOrNull(
     if (spectrumTextures.find(name) != spectrumTextures.end())
         return spectrumTextures[name];
     else {
-        Error("Couldn't find spectrum texture named \"%s\" for parameter \"%s\"",
-              name.c_str(), n.c_str());
+        Error(
+            "Couldn't find spectrum texture named \"%s\" for parameter \"%s\"",
+            name.c_str(), n.c_str());
         return nullptr;
     }
 }
@@ -796,14 +811,14 @@ std::shared_ptr<Texture<Float>> TextureParams::GetFloatTextureOrNull(
             const Float *s = materialParams.FindFloat(n, &count);
             if (s) {
                 if (count > 1)
-                    Warning("Ignoring excess values provided with parameter \"%s\"",
-                            n.c_str());
+                    Warning(
+                        "Ignoring excess values provided with parameter \"%s\"",
+                        n.c_str());
                 return std::make_shared<ConstantTexture<Float>>(*s);
             }
         }
 
-        if (name.empty())
-            return nullptr;
+        if (name.empty()) return nullptr;
     }
 
     // We have a texture name, from either the shape or the material's
@@ -817,13 +832,12 @@ std::shared_ptr<Texture<Float>> TextureParams::GetFloatTextureOrNull(
     }
 }
 
-template <typename T> static void
-reportUnusedMaterialParams(
+template <typename T>
+static void reportUnusedMaterialParams(
     const std::vector<std::shared_ptr<ParamSetItem<T>>> &mtl,
     const std::vector<std::shared_ptr<ParamSetItem<T>>> &geom) {
     for (const auto &param : mtl) {
-        if (param->lookedUp)
-            continue;
+        if (param->lookedUp) continue;
 
         // Don't complain about any unused material parameters if their
         // values were provided by a shape parameter.

@@ -39,11 +39,11 @@
 #define PBRT_CORE_INTERACTION_H
 
 // core/interaction.h*
-#include "pbrt.h"
 #include "geometry.h"
-#include "transform.h"
-#include "medium.h"
 #include "material.h"
+#include "medium.h"
+#include "pbrt.h"
+#include "transform.h"
 
 namespace pbrt {
 
@@ -122,8 +122,7 @@ class SurfaceInteraction : public Interaction {
                        const Point2f &uv, const Vector3f &wo,
                        const Vector3f &dpdu, const Vector3f &dpdv,
                        const Normal3f &dndu, const Normal3f &dndv, Float time,
-                       const Shape *sh,
-                       int faceIndex = 0);
+                       const Shape *sh, int faceIndex = 0);
     void SetShadingGeometry(const Vector3f &dpdu, const Vector3f &dpdv,
                             const Normal3f &dndu, const Normal3f &dndv,
                             bool orientationIsAuthoritative);
@@ -139,6 +138,8 @@ class SurfaceInteraction : public Interaction {
     Vector3f dpdu, dpdv;
     Normal3f dndu, dndv;
     const Shape *shape = nullptr;
+    const std::string *partName;
+    int partID = 0;
     struct {
         Normal3f n;
         Vector3f dpdu, dpdv;

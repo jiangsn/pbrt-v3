@@ -39,13 +39,15 @@
 #define PBRT_CORE_PARAMSET_H
 
 // core/paramset.h*
-#include "pbrt.h"
+#include <stdio.h>
+
+#include <map>
+
 #include "fileutil.h"
 #include "geometry.h"
-#include "texture.h"
+#include "pbrt.h"
 #include "spectrum.h"
-#include <stdio.h>
-#include <map>
+#include "texture.h"
 
 namespace pbrt {
 
@@ -119,6 +121,7 @@ class ParamSet {
     void Clear();
     std::string ToString() const;
     void Print(int indent) const;
+    std::map<std::string, std::string> GetAllStrings() const;
 
   private:
     friend class TextureParams;
